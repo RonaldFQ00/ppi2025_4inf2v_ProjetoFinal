@@ -61,6 +61,8 @@ export function CartProvider({ children }) {
   // Cart State Management
   const [cart, setCart] = useState([]);
 
+  // supabase.from("cart").select("*").eq("user_id", session.user.id)
+
   function addToCart(product) {
     // Check if the product is already in the cart
     const existingProduct = cart.find((item) => item.id === product.id);
@@ -89,6 +91,27 @@ export function CartProvider({ children }) {
   const [sessionLoading, setSessionLoading] = useState(false);
   const [sessionMessage, setSessionMessage] = useState(null);
   const [sessionError, setSessionError] = useState(null);
+
+  useEffect(() => {
+    // Verifica se tem sessão ativa no supabase
+    async function getSession() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session || null);
+    }
+
+    getSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session || null);
+    });
+
+    return() => subscription.unsubscribe();
+
+  }, []);
 
   async function handleSignUp(email, password, username) {
     setSessionLoading(true);
