@@ -23,31 +23,25 @@ export function CartProvider({ children }) {
 
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   let mounted = true;
 
+  // ---------------------------------------------------------
+  // FETCH PRODUCTS + CART
+  // ---------------------------------------------------------
   useEffect(() => {
-    if (!session) {
-      setProducts([]);
-      setCart([]);
-      setLoading(false);
-      fetchProductsSupabase();
-      return;
-    }
-
     async function fetchProductsSupabase() {
       try {
         const { data, error: fetchError } = await supabase
-          .from("product_2v")
+          .from("product")            // ✔️ tabela correta
           .select("*");
 
         if (!mounted) return;
 
         if (fetchError) {
-          setError(fetchError.message || JSON.stringify(fetchError));
+          setError(fetchError.message);
           setProducts([]);
         } else {
           setProducts(data || []);
@@ -59,9 +53,8 @@ export function CartProvider({ children }) {
     }
 
     async function fetchCartSupabase() {
-      if (!session?.user?.id) {
+      if (!session?.user) {
         if (mounted) setCart([]);
-        if (mounted) setLoading(false);
         return;
       }
 
@@ -75,7 +68,7 @@ export function CartProvider({ children }) {
         if (!mounted) return;
 
         if (cartError) {
-          setError(cartError.message || JSON.stringify(cartError));
+          setError(cartError.message);
           setCart([]);
         } else {
           setCart(data || []);
@@ -83,33 +76,39 @@ export function CartProvider({ children }) {
       } catch (err) {
         if (mounted) setError(String(err));
         if (mounted) setCart([]);
-      } finally {
-        if (mounted) setLoading(false);
       }
     }
 
     setLoading(true);
     fetchProductsSupabase();
-    fetchCartSupabase();
+    fetchCartSupabase().finally(() => {
+      if (mounted) setLoading(false);
+    });
 
     return () => {
       mounted = false;
     };
   }, [session]);
 
+  // ---------------------------------------------------------
+  // REMOVE PRODUCT FROM DB
+  // ---------------------------------------------------------
   const removeProductFromDB = async (id) => {
     try {
       const { error } = await supabase
-        .from("product_2v")
+        .from("product")             // ✔️ corrigido
         .delete()
         .eq("id", id);
 
       if (!error) removeProduct(id);
     } catch (err) {
-      console.error("Exceção ao remover produto:", err);
+      console.error("Erro ao remover produto:", err);
     }
   };
 
+  // ---------------------------------------------------------
+  // UPDATE PRODUCT
+  // ---------------------------------------------------------
   const updateProduct = async (updated) => {
     setProducts((prev) =>
       prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
@@ -125,15 +124,17 @@ export function CartProvider({ children }) {
       };
 
       await supabase
-        .from("product_2v")
+        .from("product")            // ✔️ corrigido
         .update(payload)
         .eq("id", updated.id);
     } catch (err) {
-      console.error("updateProduct exception:", err);
       setError(String(err));
     }
   };
 
+  // ---------------------------------------------------------
+  // ADD TO CART
+  // ---------------------------------------------------------
   const addToCart = (product) => {
     setCart((prev) => [...prev, { ...product, quantity: 1 }]);
 
@@ -182,6 +183,9 @@ export function CartProvider({ children }) {
     addCartItem(product);
   };
 
+  // ---------------------------------------------------------
+  // UPDATE QTY
+  // ---------------------------------------------------------
   const updateQty = async (product, qty) => {
     if (!session) {
       setError("Entre em sua conta para modificar o carrinho");
@@ -193,7 +197,7 @@ export function CartProvider({ children }) {
     try {
       await supabase
         .from("cart")
-        .update({ quantity: qty, added_at: new Date().toISOString() })
+        .update({ quantity: qty })
         .eq("customer_id", session.user.id)
         .eq("product_id", productId);
     } catch (err) {
@@ -207,46 +211,42 @@ export function CartProvider({ children }) {
     );
   };
 
+  // ---------------------------------------------------------
+  // REMOVE FROM CART
+  // ---------------------------------------------------------
   const removeFromCart = async (product) => {
     const match = cart.find(
       (item) =>
-        item.id === product.id ||
         item.product_id === product.id ||
-        (product.product_id && product.product_id === item.product_id)
+        item.id === product.id
     );
 
     if (!match) return;
 
-    const currentQty = match.quantity;
+    const qty = match.quantity;
     const productId = match.product_id ?? match.id;
 
-    if (currentQty > 1) {
+    if (qty > 1) {
       setCart((prev) =>
         prev.map((item) =>
           item.product_id === productId
-            ? { ...item, quantity: currentQty - 1 }
+            ? { ...item, quantity: qty - 1 }
             : item
         )
       );
     } else {
       setCart((prev) =>
-        prev.filter(
-          (item) =>
-            item.product_id !== productId && item.id !== match.id
-        )
+        prev.filter((item) => item.product_id !== productId)
       );
     }
 
     if (!session) return;
 
     try {
-      if (currentQty > 1) {
+      if (qty > 1) {
         await supabase
           .from("cart")
-          .update({
-            quantity: currentQty - 1,
-            added_at: new Date().toISOString()
-          })
+          .update({ quantity: qty - 1 })
           .eq("customer_id", session.user.id)
           .eq("product_id", productId);
       } else {
@@ -261,16 +261,18 @@ export function CartProvider({ children }) {
     }
   };
 
-  // Agrupar produtos duplicados
+  // ---------------------------------------------------------
+  // UNIQUE PRODUCTS
+  // ---------------------------------------------------------
   const productMap = {};
   cart.forEach((product) => {
     const idKey = product.product_id ?? product.id;
     if (productMap[idKey]) {
-      productMap[idKey].qty += product.quantity ?? 1;
+      productMap[idKey].qty += product.quantity;
     } else {
       productMap[idKey] = {
         ...product,
-        qty: product.quantity ?? 1,
+        qty: product.quantity,
         id: idKey
       };
     }
@@ -278,6 +280,9 @@ export function CartProvider({ children }) {
 
   const uniqueProducts = Object.values(productMap);
 
+  // ---------------------------------------------------------
+  // CLEAR CART
+  // ---------------------------------------------------------
   const clearCart = async (product) => {
     if (!session) return;
     try {
@@ -291,14 +296,20 @@ export function CartProvider({ children }) {
     }
   };
 
-  const addProduct = (product) => {
-    setProducts((prev) => [...prev, { ...product, id: Date.now() }]);
+  // ---------------------------------------------------------
+  // ADD / REMOVE PRODUCTS LOCALLY
+  // ---------------------------------------------------------
+  const addProduct = (p) => {
+    setProducts((prev) => [...prev, { ...p, id: Date.now() }]);
   };
 
   const removeProduct = (id) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
+  // ---------------------------------------------------------
+  // CONTEXT EXPORT
+  // ---------------------------------------------------------
   const context = {
     products,
     cart,
