@@ -30,89 +30,90 @@ export function CartProvider({ children }) {
   let mounted = true;
 
   useEffect(() => {
-  if (!session) {
-    setProducts([]);
-    setCart([]);
-    setLoading(false);
-    fetchProductsSupabase();
-    return;
-  }
-
-
-
-  async function fetchProductsSupabase() {
-    try {
-      const { data, error: fetchError } = await supabase.from("product_2v").select("*");
-      if (!mounted) return;
-      if (fetchError) {
-        console.error("fetchProductsSupabase error:", fetchError);
-        setError(fetchError.message || JSON.stringify(fetchError));
-        setProducts([]);
-      } else {
-        setProducts(data || []);
-      }
-    } catch (err) {
-      console.error("fetchProductsSupabase exception:", err);
-      if (mounted) setError(String(err));
-      if (mounted) setProducts([]);
-    }
-  }
-  async function fetchCartSupabase() {
-    if (!session || !session.user || !session.user.id) {
-      if (mounted) setCart([]);
-      if (mounted) setLoading(false);
+    if (!session) {
+      setProducts([]);
+      setCart([]);
+      setLoading(false);
+      fetchProductsSupabase();
       return;
     }
 
-    try {
-      const { data, error: cartError } = await supabase
-        .from("cart")
-        .select("*")
-        .eq("customer_id", session.user.id)
-        .order("added_at", { ascending: false });
+    async function fetchProductsSupabase() {
+      try {
+        const { data, error: fetchError } = await supabase
+          .from("product_2v")
+          .select("*");
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      if (cartError) {
-        console.error("fetchCartSupabase error:", cartError);
-        setError(cartError.message || JSON.stringify(cartError));
-        setCart([]);
-      } else {
-        setCart(data || []);
-      }
-    } catch (err) {
-      console.error("fetchCartSupabase exception:", err);
-      if (mounted) setError(String(err));
-      if (mounted) setCart([]);
-    } finally {
-      if (mounted) setLoading(false);
-    }
-  }
-
-  setLoading(true);
-  fetchProductsSupabase();
-  fetchCartSupabase();
-
-  return () => {
-    mounted = false;
-  };
-}, [session]);
-
-  const removeProductFromDB = async (id) =>{
-
-       try {
-        const { error } = await supabase.from("product_2v").delete().eq("id", id);
-        if (error) {
-          console.error("Erro ao remover produto do DB:", error);
+        if (fetchError) {
+          setError(fetchError.message || JSON.stringify(fetchError));
+          setProducts([]);
         } else {
-          removeProduct(id);
+          setProducts(data || []);
         }
       } catch (err) {
-        console.error("Exceção ao remover produto do DB:", err);
+        if (mounted) setError(String(err));
+        if (mounted) setProducts([]);
       }
+    }
+
+    async function fetchCartSupabase() {
+      if (!session?.user?.id) {
+        if (mounted) setCart([]);
+        if (mounted) setLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error: cartError } = await supabase
+          .from("cart")
+          .select("*")
+          .eq("customer_id", session.user.id)
+          .order("added_at", { ascending: false });
+
+        if (!mounted) return;
+
+        if (cartError) {
+          setError(cartError.message || JSON.stringify(cartError));
+          setCart([]);
+        } else {
+          setCart(data || []);
+        }
+      } catch (err) {
+        if (mounted) setError(String(err));
+        if (mounted) setCart([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    setLoading(true);
+    fetchProductsSupabase();
+    fetchCartSupabase();
+
+    return () => {
+      mounted = false;
     };
+  }, [session]);
+
+  const removeProductFromDB = async (id) => {
+    try {
+      const { error } = await supabase
+        .from("product_2v")
+        .delete()
+        .eq("id", id);
+
+      if (!error) removeProduct(id);
+    } catch (err) {
+      console.error("Exceção ao remover produto:", err);
+    }
+  };
+
   const updateProduct = async (updated) => {
-    setProducts((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+    setProducts((prev) =>
+      prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+    );
 
     try {
       const payload = {
@@ -120,16 +121,19 @@ export function CartProvider({ children }) {
         price: updated.price,
         description: updated.description,
         thumbnail: updated.thumbnail,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase.from("product_2v").update(payload).eq("id", updated.id);
+      await supabase
+        .from("product_2v")
+        .update(payload)
+        .eq("id", updated.id);
     } catch (err) {
       console.error("updateProduct exception:", err);
       setError(String(err));
     }
   };
-  
+
   const addToCart = (product) => {
     setCart((prev) => [...prev, { ...product, quantity: 1 }]);
 
@@ -138,8 +142,9 @@ export function CartProvider({ children }) {
         setError("Entre em sua conta para modificar o carrinho");
         return;
       }
+
       try {
-        const { data: existing, error: fetchErr } = await supabase
+        const { data: existing } = await supabase
           .from("cart")
           .select("*")
           .eq("customer_id", session.user.id)
@@ -147,16 +152,19 @@ export function CartProvider({ children }) {
           .maybeSingle();
 
         if (existing) {
-          const newQty = existing.quantity + 1;
-          const { error: updateErr } = await supabase
+          await supabase
             .from("cart")
-            .update({ quantity: newQty, added_at: new Date().toISOString() })
+            .update({
+              quantity: existing.quantity + 1,
+              added_at: new Date().toISOString()
+            })
             .eq("customer_id", session.user.id)
             .eq("product_id", prod.id);
+
           return;
         }
 
-        const { error: insertErr } = await supabase.from("cart").insert({
+        await supabase.from("cart").insert({
           customer_id: session.user.id,
           product_id: prod.id,
           quantity: 1,
@@ -164,10 +172,9 @@ export function CartProvider({ children }) {
           price: prod.price,
           thumbnail: prod.thumbnail,
           description: prod.description,
-          added_at: new Date().toISOString(),
+          added_at: new Date().toISOString()
         });
       } catch (err) {
-        console.error("addToCart exception:", err);
         setError(String(err));
       }
     }
@@ -181,22 +188,21 @@ export function CartProvider({ children }) {
       return;
     }
 
-    try {
-      const productId = product.product_id ?? product.id;
+    const productId = product.product_id ?? product.id;
 
-      const { error } = await supabase
+    try {
+      await supabase
         .from("cart")
         .update({ quantity: qty, added_at: new Date().toISOString() })
         .eq("customer_id", session.user.id)
         .eq("product_id", productId);
     } catch (err) {
-      console.error("updateQty exception:", err);
       setError(String(err));
     }
 
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.id === product.id || item.product_id === product.id ? { ...item, quantity: qty } : item
+    setCart((prev) =>
+      prev.map((item) =>
+        item.product_id === productId ? { ...item, quantity: qty } : item
       )
     );
   };
@@ -206,66 +212,67 @@ export function CartProvider({ children }) {
       (item) =>
         item.id === product.id ||
         item.product_id === product.id ||
-        (product.product_id && item.product_id === product.product_id)
+        (product.product_id && product.product_id === item.product_id)
     );
 
-    const currentQty = match.quantity;
-    const rowId = match.id;
-    const productId = match.product.id;
+    if (!match) return;
 
+    const currentQty = match.quantity;
+    const productId = match.product_id ?? match.id;
 
     if (currentQty > 1) {
-      setCart((prevCart) =>
-        prevCart.map((item) =>
-          item.id === rowId || item.product_id === productId ? { ...item, quantity: (item.quantity ?? 1) - 1 } : item
+      setCart((prev) =>
+        prev.map((item) =>
+          item.product_id === productId
+            ? { ...item, quantity: currentQty - 1 }
+            : item
         )
       );
     } else {
-      setCart((prevCart) => {
-        const index = prevCart.findIndex(
-          (item) => item.id === rowId || item.product_id === productId || item.id === product.id
-        );
-        if (index === -1) return prevCart;
-        const newCart = [...prevCart];
-        newCart.splice(index, 1);
-        return newCart;
-      });
+      setCart((prev) =>
+        prev.filter(
+          (item) =>
+            item.product_id !== productId && item.id !== match.id
+        )
+      );
     }
 
-    // persist change to supabase
-    if (!session) {
-      setError("Entre em sua conta para modificar o carrinho");
-      return;
-    }
+    if (!session) return;
 
     try {
       if (currentQty > 1) {
-        const { error: updErr } = await supabase
+        await supabase
           .from("cart")
-          .update({ quantity: currentQty - 1, added_at: new Date().toISOString() })
+          .update({
+            quantity: currentQty - 1,
+            added_at: new Date().toISOString()
+          })
           .eq("customer_id", session.user.id)
           .eq("product_id", productId);
-
       } else {
-        const { error: delErr } = await supabase
+        await supabase
           .from("cart")
           .delete()
           .eq("customer_id", session.user.id)
           .eq("product_id", productId);
       }
     } catch (err) {
-      console.error("removeFromCart exception:", err);
       setError(String(err));
     }
   };
 
+  // Agrupar produtos duplicados
   const productMap = {};
   cart.forEach((product) => {
     const idKey = product.product_id ?? product.id;
     if (productMap[idKey]) {
       productMap[idKey].qty += product.quantity ?? 1;
     } else {
-      productMap[idKey] = { ...product, qty: product.quantity ?? 1, id: idKey };
+      productMap[idKey] = {
+        ...product,
+        qty: product.quantity ?? 1,
+        id: idKey
+      };
     }
   });
 
@@ -274,12 +281,12 @@ export function CartProvider({ children }) {
   const clearCart = async (product) => {
     if (!session) return;
     try {
-      const { error } = await supabase.from("cart")
-      .delete()
-      .eq("customer_id", session.user.id)
-      .eq("product_id", product.id);
+      await supabase
+        .from("cart")
+        .delete()
+        .eq("customer_id", session.user.id)
+        .eq("product_id", product.id);
     } catch (err) {
-      console.error("clearCart exception:", err);
       setError(String(err));
     }
   };
@@ -308,8 +315,13 @@ export function CartProvider({ children }) {
     removeProductFromDB
   };
 
-  return <CartContext.Provider value={context}>{children}</CartContext.Provider>;
+  return (
+    <CartContext.Provider value={context}>
+      {children}
+    </CartContext.Provider>
+  );
 }
+
 export function useCart() {
   return useContext(CartContext);
 }
