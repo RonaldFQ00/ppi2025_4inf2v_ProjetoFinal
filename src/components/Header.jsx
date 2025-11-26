@@ -24,11 +24,11 @@ export function Header() {
       <div className={styles.actions}>
         {!session && (
           <>
-            <Link to="/signin" className={styles.link}>
+            <Link to="/login" className={styles.link}>
               Sign In
             </Link>
-            <Link to="/register" className={styles.link}>
-              Register
+            <Link to="/user" className={styles.link}>
+              Account
             </Link>
           </>
         )}
