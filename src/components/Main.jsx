@@ -2,8 +2,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
-import { SessionProvider } from "./contexts/SessionContext";
-import { CartProvider } from "./contexts/CartContext";
+import { SessionProvider } from "./context/SessionContext";
+import { CartProvider } from "./context/CartContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

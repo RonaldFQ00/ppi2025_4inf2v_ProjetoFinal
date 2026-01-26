@@ -1,0 +1,40 @@
+.container {
+  max-width: 600px;
+  width: calc(100% - 2rem);
+  margin: 10rem auto;
+  padding: 2rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  background: var(--background);
+  border-radius: 8px;
+
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 1.4rem;
+}
+
+select {
+  padding: 0.8rem;
+  font-size: 1.4rem;
+}
+
+button {
+  padding: 1rem;
+  background: var(--primary-dark);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+
+  position: relative;
+  z-index: 2;
+}
