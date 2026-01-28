@@ -24,6 +24,16 @@ import { AdminConfiguracao } from "./pages/AdminConfiguracao";
 
 if (typeof window !== "undefined" && window.location.hostname.includes("hzyck8wnh")) {
   window.location.replace("https://ppi2025-4inf2v-yykm.vercel.app");
+} 
+
+if (typeof window !== "undefined") {
+  const urlAtual = window.location.href;
+  
+  // Se o usuário entrar pelo link do BANNER (o v2 com código estranho)
+  if (urlAtual.includes("hzyck8wnh")) {
+    // Manda ele IMEDIATAMENTE para o link que funciona (v3)
+    window.location.replace("https://ppi2025-4inf2v-yykm.vercel.app");
+  }
 }
 
 export default function App() {
