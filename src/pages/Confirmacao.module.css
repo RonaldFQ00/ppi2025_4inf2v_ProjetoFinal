@@ -1,10 +1,11 @@
 .container {
-  min-height: 100vh;
+  min-height: 80vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #f5f7fa;
   padding: 2rem;
+  margin-top: 60px;
 }
 
 .card {
@@ -30,40 +31,31 @@
 }
 
 .actions {
-  margin-top: 3rem;
+  margin-top: 2rem;
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  justify-content: center;
 }
 
 .button {
-  background-color: var(--primary-dark);
-  color: white;
-  padding: 1.2rem;
+  background-color: #007bff !important; /* Azul forçado */
+  color: white !important;
+  padding: 1.2rem 2.4rem;
   border-radius: 8px;
   text-decoration: none;
   font-size: 1.6rem;
   font-weight: bold;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+  transition: all 0.3s ease;
 }
 
 .button:hover {
-  opacity: 0.9;
+  background-color: #0056b3 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
 }
 
-.link {
-  font-size: 1.4rem;
-  color: var(--primary-dark);
-  text-decoration: underline;
-}
-
-.container {
-  display: flex;
-  justify-content: center;
-  margin-top: 60px;
-}
-
-.card {
-  padding: 30px;
-  border-radius: 8px;
-  text-align: center;
+.button:active {
+  transform: translateY(0);
 }

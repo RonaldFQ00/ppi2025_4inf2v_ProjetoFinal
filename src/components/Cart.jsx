@@ -1,26 +1,26 @@
 import styles from "./Cart.module.css";
 import { useContext } from "react";
 import { CartContext } from "../context/CartContext";
-import { finalizarPedido } from "../services/pedidos";
 import { SessionContext } from "../context/SessionContext";
+import { useNavigate } from "react-router"; 
 
 export function Cart() {
   const { session } = useContext(SessionContext);
   const user = session?.user;
+  const navigate = useNavigate();
 
   const {
     uniqueProducts,
     addToCart,
     removeFromCart,
     removeProductFromCart,
-    clearCart
   } = useContext(CartContext);
 
   const total = uniqueProducts
     .reduce((acc, product) => acc + product.price * product.qty, 0)
     .toFixed(2);
 
-  async function handleCheckout() {
+  function handleCheckout() {
     if (uniqueProducts.length === 0) {
       alert("Seu carrinho está vazio.");
       return;
@@ -31,17 +31,8 @@ export function Cart() {
       return;
     }
 
-    try {
-      await finalizarPedido(user.id, uniqueProducts);
-
-      clearCart();
-
-      // 👉 fluxo correto
-      window.location.href = "/confirmar-dados";
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao finalizar o pedido.");
-    }
+    // Apenas navega para a tela de preencher dados
+    navigate("/confirmar-dados");
   }
 
   return (
@@ -56,27 +47,16 @@ export function Cart() {
             {uniqueProducts.map((product) => (
               <li key={product.id}>
                 <div className={styles.cartItem}>
-                  <img
-                    src={product.thumbnail}
-                    alt={product.title}
-                  />
-
+                  <img src={product.thumbnail} alt={product.title} />
                   <h3>{product.title}</h3>
-
                   <div className={styles.quantity}>
-                    <button onClick={() => removeFromCart(product)}>
-                      -
-                    </button>
+                    <button onClick={() => removeFromCart(product)}>-</button>
                     <p>{product.qty}</p>
-                    <button onClick={() => addToCart(product)}>
-                      +
-                    </button>
+                    <button onClick={() => addToCart(product)}>+</button>
                   </div>
-
                   <p className={styles.subtotal}>
                     ${(product.price * product.qty).toFixed(2)}
                   </p>
-
                   <button
                     className={styles.remove}
                     onClick={() => removeProductFromCart(product)}
@@ -90,10 +70,7 @@ export function Cart() {
 
           <div className={styles.checkout}>
             <h3>Total: ${total}</h3>
-            <button
-              className={styles.checkoutBtn}
-              onClick={handleCheckout}
-            >
+            <button className={styles.checkoutBtn} onClick={handleCheckout}>
               Finalizar compra
             </button>
           </div>

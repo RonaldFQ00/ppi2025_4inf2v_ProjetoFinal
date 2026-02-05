@@ -6,80 +6,70 @@ import { CartContext } from "../context/CartContext";
 import { SessionContext } from "../context/SessionContext";
 import { ThemeToggle } from "./ThemeToggle";
 
-
 export function Header() {
- const { cart } = useContext(CartContext);
+  const { cart } = useContext(CartContext);
   const { session } = useContext(SessionContext);
 
-  const isLogged = !!session;
   const isAdmin = session?.user?.user_metadata?.admin;
+  
+  // Lógica aprimorada: 
+  // 1. Tenta o 'username' (que você configurou no SessionContext)
+  // 2. Tenta o 'display_name'
+  // 3. Se não houver nenhum, pega o email mas remove o "@..." para não ficar feio
+  const userName = session?.user?.user_metadata?.username || 
+                   session?.user?.user_metadata?.display_name || 
+                   session?.user?.email?.split('@')[0];
+
   return (
-    <div className={styles.container}>
-      {/* LOGO */}
+    <header className={styles.container}>
+      {/* TÍTULO DA LOJA E NOME DO USUÁRIO */}
       <div>
-        <Link to="/" className={styles.link}>
-          <h1>TRJ Megastore</h1>
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <h1>TJR MEGASTORE</h1>
         </Link>
-
-        {/* USUÁRIO LOGADO */}
-        {isLogged && (
-          <div className={styles.userLinks}>
-            <Link to="/user" className={styles.welcomeMessage}>
-              <User size={16} />
-              {session.user.user_metadata.username}
-            </Link>
-
-            {isAdmin && (
-              <Link to="/admin/configuracao" className={styles.adminLink}>
-                <Settings size={16} />
-                Configuração
-              </Link>
-            )}
-          </div>
+        {session && (
+          <Link to="/user" className={styles.welcomeMessage}>
+             @{userName}
+          </Link>
         )}
       </div>
 
-      {/* AÇÕES */}
       <div className={styles.actions}>
-        {/* USUÁRIO NÃO LOGADO */}
-        {!isLogged && (
-          <>
-            <Link to="/login" className={styles.link}>
-              Sign In
-            </Link>
-            <Link to="/signup" className={styles.link}>
-              Criar conta
-            </Link>
-          </>
-        )}
-
         <ThemeToggle />
 
-        {/* CARRINHO (SEMPRE VISÍVEL) */}
+        {/* CARRINHO */}
         <Link to="/cart" className={styles.link}>
           <div className={styles.cartInfo}>
             <div className={styles.cartIcon}>
-              <ShoppingBasket size={32} />
+              <ShoppingBasket size={40} />
               {cart.length > 0 && (
                 <span className={styles.cartCount}>
                   {cart.reduce((t, i) => t + i.quantity, 0)}
                 </span>
               )}
             </div>
-
             <p>
               Total: $
               {cart
-                .reduce(
-                  (total, product) =>
-                    total + product.price * product.quantity,
-                  0
-                )
+                .reduce((total, product) => total + product.price * product.quantity, 0)
                 .toFixed(2)}
             </p>
           </div>
         </Link>
+
+        {isAdmin && (
+          <Link to="/admin/configuracao" className={styles.link}>
+            <Settings size={32} />
+          </Link>
+        )}
+        
+        {/* Ícone de Usuário/Perfil sempre visível se logado */}
+        {session && (
+          <Link to="/user" className={styles.link}>
+            <User size={32} />
+          </Link>
+        )}
       </div>
-    </div>
+    </header>
   );
 }
