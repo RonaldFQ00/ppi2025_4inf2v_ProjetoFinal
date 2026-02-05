@@ -4,14 +4,16 @@
   justify-content: space-between;
   gap: 3rem;
   height: 15rem;
-  padding: 5rem;
-  background-color: var(--primary-light);
+  padding: 2rem 5rem;
+  background: var(--gradient-primary);
+  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
 
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
+  animation: slideInLeft 0.6s ease;
 }
 
 .actions {
@@ -23,14 +25,18 @@
 
 .container h1 {
   font-size: 5rem;
-  font-weight: bolder;
-  color: var(--primary-dark);
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  letter-spacing: -1px;
 }
 
 .containerImg img {
   height: auto;
   width: 100%;
   max-width: 20rem;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
+  animation: float 3s ease-in-out infinite;
 }
 
 .container p {
@@ -38,30 +44,58 @@
 }
 
 .cartInfo {
-  border-radius: 3rem;
-  background-color: var(--background);
-  color: var(--text);
-  padding: 2rem;
-  font-size: 3rem;
+  border-radius: 2rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  color: var(--primary);
+  padding: 1.5rem 2rem;
+  font-size: 2.5rem;
   font-weight: bold;
   text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .link {
   font-size: 2rem;
   text-decoration: none;
-  color: var(--primary);
-  color: var(--text);
-  transition: color 0.3s;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent-gold);
+  transition: width 0.3s ease;
+}
+
+.link:hover::after {
+  width: 100%;
 }
 
 .link:hover {
-  color: var(--primary-dark);
+  transform: translateY(-2px);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .cartIcon {
   position: relative;
   display: inline-block;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.cartIcon:hover {
+  transform: scale(1.1) rotate(5deg);
 }
 
 .cartCount {
@@ -69,22 +103,26 @@
   top: -0.8rem;
   right: -2rem;
   font-size: 1.5rem;
-  border-radius: 1rem;
-  background-color: var(--primary-dark);
-  color: var(--gray-100);
+  border-radius: 50%;
+  background: var(--secondary);
+  color: #ffffff;
   padding: 0.2rem 0.6rem;
   font-weight: bold;
   z-index: 1;
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+  animation: glow 2s ease-in-out infinite;
 }
 
 .welcomeMessage {
   font-size: 1.5rem;
-  color: var(--text);
+  color: #ffffff;
   margin-right: 1rem;
   text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .welcomeMessage:hover {
-  /* color: var(--primary-dark); */
-  text-decoration: underline;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
 }

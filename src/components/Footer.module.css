@@ -1,0 +1,125 @@
+.footer {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: #f0f0f0;
+  padding: 4rem 2rem 2rem;
+  margin-top: 5rem;
+  border-top: 3px solid var(--gradient-primary);
+}
+
+.footerContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr));
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+.footerSection {
+  animation: fadeInUp 0.8s ease;
+}
+
+.footerTitle {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.footerLinks {
+  list-style: none;
+  padding: 0;
+}
+
+.footerLinks li {
+  margin-bottom: 1rem;
+}
+
+.footerLinks a {
+  color: #c0c0c0;
+  text-decoration: none;
+  font-size: 1.4rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.footerLinks a:hover {
+  color: var(--accent-gold);
+  transform: translateX(5px);
+}
+
+.footerText {
+  font-size: 1.4rem;
+  color: #b0b0b0;
+  line-height: 1.8;
+}
+
+.socialLinks {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.socialIcon {
+  width: 4rem;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-primary);
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  font-size: 2rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.socialIcon:hover {
+  transform: scale(1.15) translateY(-5px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+}
+
+.footerBottom {
+  border-top: 2px solid rgba(251, 191, 36, 0.2);
+  padding-top: 2rem;
+  text-align: center;
+}
+
+.copyright {
+  font-size: 1.4rem;
+  color: #909090;
+  margin-bottom: 1rem;
+}
+
+.bottomLinks {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.bottomLinks a {
+  color: #c0c0c0;
+  text-decoration: none;
+  font-size: 1.3rem;
+  transition: all 0.3s ease;
+}
+
+.bottomLinks a:hover {
+  color: var(--accent-gold);
+}
+
+.logo {
+  font-size: 2.5rem;
+  font-weight: 900;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem;
+}
